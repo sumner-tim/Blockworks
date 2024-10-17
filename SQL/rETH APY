@@ -1,5 +1,5 @@
 WITH
--- rETH
+-- 1. Retrieve blocks to get time and block number
 blocks AS (
     SELECT 
         time,
@@ -8,6 +8,7 @@ blocks AS (
     WHERE "number" > 13578840
 ),
 
+-- 2. Pull relevant data for rETH from multiple sources
 reth_evt_preatlas AS (
     SELECT
         evt_block_time,
@@ -20,27 +21,13 @@ reth_evt_preatlas AS (
     ORDER BY referenceBlock ASC
 ),
 
-reth_evt_atlas AS (
-    SELECT 
-        block_time as evt_block_time,
-        block_number as evt_block_number,
-        bytearray_to_uint256(bytearray_substring(data, 1, 32)) as referenceBlock,
-        bytearray_to_uint256(bytearray_substring(data, 33, 32)) as totalEth,
-        bytearray_to_uint256(bytearray_substring(data, 97, 32)) as rethSupply
-    FROM ethereum.logs
-    WHERE contract_address = 0x07FCaBCbe4ff0d80c2b1eb42855C0131b6cba2F4
-      AND block_time >= cast('2023-04-08 00:00' as timestamp)
-      AND topic0 = 0x7bbbb137fdad433d6168b1c75c714c72b8abe8d07460f0c0b433063e7bf1f394
-    ORDER BY referenceBlock ASC
-),
-
+-- 3. Combine all rETH events data into a unified table
 reth_evt_unified AS (
     SELECT * FROM reth_evt_preatlas
-    UNION 
-    SELECT * FROM reth_evt_atlas
     ORDER BY referenceBlock ASC
 ),
 
+-- 4. Join blocks and rETH event data to add reference times
 reth_evt_unifiedwithreftime AS (
     SELECT
         evt_block_time,
@@ -53,6 +40,7 @@ reth_evt_unifiedwithreftime AS (
     ON b.block = r.referenceBlock
 ),
 
+-- 5. Calculate APY based on the change in rETH peg over time
 reth_evt AS (
     SELECT
         evt_block_time,
@@ -64,6 +52,7 @@ reth_evt AS (
     FROM reth_evt_unifiedwithreftime
 ),
 
+-- 6. Calculate APY by annualizing the growth rate in eth_reth_peg
 reth AS (
     SELECT
         evt_block_time,
@@ -75,6 +64,7 @@ reth AS (
     FROM reth_evt
 ),
 
+-- 7. Rank APY values and assign row numbers for trimming
 reth_ranked AS (
     SELECT
         evt_block_time AS time,
@@ -85,6 +75,7 @@ reth_ranked AS (
     FROM reth
 ),
 
+-- 8. Filter out top and bottom 10% APY values based on row numbers
 reth_trimmed AS (
     SELECT
         time,
@@ -94,12 +85,14 @@ reth_trimmed AS (
       AND row_desc > 0.1 * total_rows
 ),
 
+-- 9. Calculate the 10% trimmed average of the remaining APY values
 reth_trimmed_avg AS (
     SELECT
         AVG(apy) AS "rETH 10% Trimmed Average APY"
     FROM reth_trimmed
 )
 
+-- 10. Output the final result
 SELECT
     "rETH 10% Trimmed Average APY"
 FROM reth_trimmed_avg
