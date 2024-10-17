@@ -1,0 +1,46 @@
+WITH
+-- cbETH
+cbeth_evt AS (
+    SELECT
+        evt_block_time AS time,
+        cast(newExchangeRate as double) / 1e18 AS eth_cbeth_peg
+    FROM coinbase_ethereum.StakedTokenV1_evt_ExchangeRateUpdated
+    WHERE evt_block_time >= cast('2022-07-15 00:00' as timestamp)
+    ORDER BY time ASC
+),
+
+cbeth AS (
+    SELECT
+        time,
+        100 * 365 * ((eth_cbeth_peg / NULLIF(coalesce(lag(eth_cbeth_peg) OVER (ORDER BY time), 0), 0) - 1)) AS apy
+    FROM cbeth_evt
+),
+
+cbeth_ranked AS (
+    SELECT
+        time,
+        apy,
+        ROW_NUMBER() OVER (ORDER BY apy ASC) AS row_asc,
+        ROW_NUMBER() OVER (ORDER BY apy DESC) AS row_desc,
+        COUNT(*) OVER () AS total_rows
+    FROM cbeth
+),
+
+cbeth_trimmed AS (
+    SELECT
+        time,
+        apy
+    FROM cbeth_ranked
+    WHERE row_asc > 0.1 * total_rows
+      AND row_desc > 0.1 * total_rows
+),
+
+cbeth_trimmed_avg AS (
+    SELECT
+        AVG(apy) AS "cbETH 10% Trimmed Average APY"
+    FROM cbeth_trimmed
+)
+
+SELECT
+    "cbETH 10% Trimmed Average APY"
+FROM cbeth_trimmed_avg
