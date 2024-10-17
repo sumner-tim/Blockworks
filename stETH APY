@@ -1,0 +1,68 @@
+WITH
+-- stETH shares calculation for both pre and post-oracle share rates
+steth_shares AS (
+    SELECT
+      preTotalEther * 1e27 / preTotalShares AS pre_share_rate,
+      postTotalEther * 1e27 / postTotalShares AS post_share_rate,
+      *
+    FROM
+      lido_ethereum.steth_evt_TokenRebased
+),
+  
+-- stETH APY calculations from legacy and V2 oracle data
+steth_evt AS (
+    -- Legacy oracle
+    SELECT
+      "evt_block_time" AS time,
+      cast(("postTotalPooledEther" - "preTotalPooledEther") * 365 * 24 * 60 * 60 / ("preTotalPooledEther") AS double) / timeElapsed * 0.9 * 100 AS "apy"
+    FROM
+      lido_ethereum.LegacyOracle_evt_PostTotalShares
+    WHERE
+      "evt_block_time" >= cast('2022-09-01 00:00' AS TIMESTAMP)
+      AND "evt_block_time" <= cast('2023-05-16 00:00' AS TIMESTAMP)
+    
+    -- V2 oracle
+    UNION ALL
+    SELECT
+      "evt_block_time" AS time,
+      365 * 24 * 60 * 60 * (post_share_rate - pre_share_rate) / pre_share_rate / timeElapsed * 100 AS "apy"
+    FROM
+      steth_shares
+),
+
+-- Calculate row numbers and percentiles to identify the 10% trimmed range
+steth_ranked AS (
+    SELECT
+        time,
+        apy,
+        ROW_NUMBER() OVER (ORDER BY apy ASC) AS row_asc,
+        ROW_NUMBER() OVER (ORDER BY apy DESC) AS row_desc,
+        COUNT(*) OVER () AS total_rows
+    FROM
+        steth_evt
+),
+
+-- Filter out the top and bottom 10% of rows based on APY
+steth_trimmed AS (
+    SELECT
+        time,
+        apy
+    FROM
+        steth_ranked
+    WHERE
+        row_asc > 0.1 * total_rows
+        AND row_desc > 0.1 * total_rows
+),
+
+-- Calculate the 10% trimmed average APY
+steth_trimmed_avg AS (
+    SELECT
+        AVG(apy) AS "stETH 10% Trimmed Average APY"
+    FROM
+        steth_trimmed
+)
+
+SELECT
+    "stETH 10% Trimmed Average APY"
+FROM
+    steth_trimmed_avg
