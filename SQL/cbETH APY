@@ -1,5 +1,5 @@
 WITH
--- cbETH
+-- 1. Retrieve cbETH peg rate data and event time
 cbeth_evt AS (
     SELECT
         evt_block_time AS time,
@@ -9,6 +9,7 @@ cbeth_evt AS (
     ORDER BY time ASC
 ),
 
+-- 2. Calculate APY for cbETH based on the peg rate changes over time
 cbeth AS (
     SELECT
         time,
@@ -16,6 +17,7 @@ cbeth AS (
     FROM cbeth_evt
 ),
 
+-- 3. Rank APY values and assign row numbers for trimming
 cbeth_ranked AS (
     SELECT
         time,
@@ -26,6 +28,7 @@ cbeth_ranked AS (
     FROM cbeth
 ),
 
+-- 4. Filter out top and bottom 10% APY values based on row numbers
 cbeth_trimmed AS (
     SELECT
         time,
@@ -35,12 +38,14 @@ cbeth_trimmed AS (
       AND row_desc > 0.1 * total_rows
 ),
 
+-- 5. Calculate the 10% trimmed average of the remaining APY values
 cbeth_trimmed_avg AS (
     SELECT
         AVG(apy) AS "cbETH 10% Trimmed Average APY"
     FROM cbeth_trimmed
 )
 
+-- 6. Output the final result
 SELECT
     "cbETH 10% Trimmed Average APY"
 FROM cbeth_trimmed_avg
