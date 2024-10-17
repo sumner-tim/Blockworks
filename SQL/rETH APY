@@ -1,0 +1,105 @@
+WITH
+-- rETH
+blocks AS (
+    SELECT 
+        time,
+        cast("number" as uint256) AS block
+    FROM ethereum.blocks
+    WHERE "number" > 13578840
+),
+
+reth_evt_preatlas AS (
+    SELECT
+        evt_block_time,
+        evt_block_number,
+        block as referenceBlock,
+        totalEth,
+        rethSupply
+    FROM rocketnetwork_ethereum.RocketNetworkBalances_evt_BalancesUpdated
+    WHERE evt_block_time >= cast('2022-07-15 00:00' as timestamp)
+    ORDER BY referenceBlock ASC
+),
+
+reth_evt_atlas AS (
+    SELECT 
+        block_time as evt_block_time,
+        block_number as evt_block_number,
+        bytearray_to_uint256(bytearray_substring(data, 1, 32)) as referenceBlock,
+        bytearray_to_uint256(bytearray_substring(data, 33, 32)) as totalEth,
+        bytearray_to_uint256(bytearray_substring(data, 97, 32)) as rethSupply
+    FROM ethereum.logs
+    WHERE contract_address = 0x07FCaBCbe4ff0d80c2b1eb42855C0131b6cba2F4
+      AND block_time >= cast('2023-04-08 00:00' as timestamp)
+      AND topic0 = 0x7bbbb137fdad433d6168b1c75c714c72b8abe8d07460f0c0b433063e7bf1f394
+    ORDER BY referenceBlock ASC
+),
+
+reth_evt_unified AS (
+    SELECT * FROM reth_evt_preatlas
+    UNION 
+    SELECT * FROM reth_evt_atlas
+    ORDER BY referenceBlock ASC
+),
+
+reth_evt_unifiedwithreftime AS (
+    SELECT
+        evt_block_time,
+        evt_block_number,
+        to_unixtime(time) as referenceTime,
+        totalEth,
+        rethSupply
+    FROM blocks b
+    JOIN reth_evt_unified r
+    ON b.block = r.referenceBlock
+),
+
+reth_evt AS (
+    SELECT
+        evt_block_time,
+        evt_block_number,
+        referenceTime,
+        referenceTime - NULLIF(coalesce(lag(referenceTime) over (order by referenceTime), 0), 0) as timeSinceLastUpdate,
+        totalEth,
+        cast(totalEth as double) / cast(rethSupply as double) AS eth_reth_peg
+    FROM reth_evt_unifiedwithreftime
+),
+
+reth AS (
+    SELECT
+        evt_block_time,
+        evt_block_number,
+        referenceTime,
+        eth_reth_peg,
+        100 * (31536000 / cast(timeSinceLastUpdate as double)) * 
+        (eth_reth_peg / NULLIF(coalesce(lag(eth_reth_peg) over (order by referenceTime), 0), 0) - 1) as apy
+    FROM reth_evt
+),
+
+reth_ranked AS (
+    SELECT
+        evt_block_time AS time,
+        apy,
+        ROW_NUMBER() OVER (ORDER BY apy ASC) AS row_asc,
+        ROW_NUMBER() OVER (ORDER BY apy DESC) AS row_desc,
+        COUNT(*) OVER () AS total_rows
+    FROM reth
+),
+
+reth_trimmed AS (
+    SELECT
+        time,
+        apy
+    FROM reth_ranked
+    WHERE row_asc > 0.1 * total_rows
+      AND row_desc > 0.1 * total_rows
+),
+
+reth_trimmed_avg AS (
+    SELECT
+        AVG(apy) AS "rETH 10% Trimmed Average APY"
+    FROM reth_trimmed
+)
+
+SELECT
+    "rETH 10% Trimmed Average APY"
+FROM reth_trimmed_avg
