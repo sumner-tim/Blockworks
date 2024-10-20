@@ -13,10 +13,10 @@ This repository contains the data, code, and outputs used in the analysis:
 
 - **Design Folder**: Contains the experimental design matrix and a detailed description of the token classification process. Each token was assigned a specific level for factors such as retention rate, fee structure, and other protocol features.
   - `design/design_matrix.csv`: The design matrix showing the experimental setup.
-  - `design/protocol_descriptions.txt`: Descriptions of how each token was assigned levels for the factors being analyzed.
+  - `design/README.md`: Descriptions of how each token was assigned levels for the factors being analyzed.
 
 - **Analysis.R Script**: The primary script that performs the analysis, generating the figures and final results.
-  - `Analysis.R`: R script that runs the fractional factorial design analysis, visualizes the data, and computes the results.
+  - `Analysis.R`: R script that runs the fractional factorial design analysis, visualizes the data, and computes the results. All that is needed to replicate this analysis is this script. The data pulls directly from the stored CSVs in GitHub.
 
 ## Overview
 
@@ -38,7 +38,5 @@ The analysis includes tokens such as:
 ## Instructions
 
 To replicate the analysis or explore the data:
-1. Clone the repository.
-2. Pull the latest data using the Python script in the **data** folder.
-3. Review the **design** folder for detailed descriptions of the token classification.
-4. Run the **Analysis.R** script to generate the visualizations and results.
+1. Review the **design** folder for detailed descriptions of the token classification.
+2. Run the **Analysis.R** script to generate the visualizations and results.
