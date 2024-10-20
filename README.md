@@ -9,7 +9,7 @@ This repository contains the data, code, and outputs used in the analysis:
 
 - **Data Folder**: Contains the transaction data pulled from Dune Analytics. Additionally, a Python script is provided to automatically pull this data directly from Dune.  
   - `data/transactions_data.csv`: The transaction data file used in the analysis.
-  - `data/pull_data.py`: Python script that automates the data extraction process from Dune Analytics.
+  - `GetData.py`: Python script that automates the data extraction process from Dune Analytics. This program is not needed to run the analysis, but is available to show how I pulled the datasets used.
 
 - **Design Folder**: Contains the experimental design matrix and a detailed description of the token classification process. Each token was assigned a specific level for factors such as retention rate, fee structure, and other protocol features.
   - `design/design_matrix.csv`: The design matrix showing the experimental setup.
