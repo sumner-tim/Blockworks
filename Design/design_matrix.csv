@@ -1,0 +1,23 @@
+Token,Fee Structure,Reward Payout Frequency,APY,Liquidity,Lockup Period,Slashing Risk,Governance Participation,Security & Audits,Ecosystem Support
+Ankr Staked ETH (ankrETH),-1,-1,-1,1,-1,1,1,1,1
+Coinbase Wrapped Staked ETH (cbETH),1,-1,-1,1,1,-1,-1,1,1
+Crypto.com Staked ETH (CDCETH),1,-1,-1,-1,1,-1,-1,1,-1
+Eigenpie mstETH (MSTETH),-1,1,1,-1,-1,1,1,-1,-1
+ether.fi Staked ETH (EETH),-1,1,1,1,-1,1,1,1,1
+Frax Staked Ether (SFRXETH),-1,1,1,1,-1,-1,1,1,1
+Kelp DAO Restaked ETH (RSETH),-1,1,1,-1,1,1,1,-1,-1
+Lido Staked ETH (stETH),1,1,-1,1,-1,-1,1,1,1
+Liquid Staked ETH (LSETH),-1,1,1,1,-1,1,1,-1,1
+Mantle Staked Ether (METH),1,1,1,-1,1,1,1,-1,-1
+PUFETH (pufETH),-1,1,1,-1,1,1,1,-1,-1
+pzETH (PZETH),-1,1,1,-1,1,1,1,-1,-1
+Renzo Restaked ETH (EZETH),-1,1,1,-1,1,1,1,-1,-1
+Restaked Swell Ethereum (RSWETH),-1,1,1,-1,1,1,1,-1,-1
+Rocket Pool ETH (RETH),-1,1,-1,1,-1,-1,1,1,1
+sETH2 (SETH2),1,-1,-1,-1,1,-1,-1,1,1
+Stader ETHx (ETHX),-1,1,1,1,-1,1,1,1,1
+StakeWise Staked ETH (osETH),-1,1,1,1,-1,-1,1,1,1
+SWETH (swETH),-1,1,1,1,-1,1,1,-1,1
+Wrapped Beacon ETH (WBETH),1,-1,-1,1,1,-1,-1,1,1
+Wrapped eETH (weETH),-1,1,-1,1,-1,-1,-1,1,1
+Wrapped Origin Ether (WOETH),-1,1,-1,1,-1,-1,-1,1,1
