@@ -144,6 +144,7 @@ design_df <- design_url %>%
   read.csv() %>%
   inner_join(token.results, by = "Token") %>%
   as.data.frame()
+names(design_df) <- str_replace_all(str_replace_all(names(design_df), "\\.", " "), "   ", " & ")
 
 ###########
 # Visuals #
