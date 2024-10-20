@@ -38,5 +38,5 @@ The analysis includes tokens such as:
 ## Instructions
 
 To replicate the analysis or explore the data:
-1. Review the **design** folder for detailed descriptions of the token classification.
+1. Review the **Design** folder for detailed descriptions of the token classification.
 2. Run the **Analysis.R** script to generate the visualizations and results.
